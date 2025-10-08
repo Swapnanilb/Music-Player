@@ -12,7 +12,8 @@
   "devDependencies": {
     "electron": "^27.0.0",
     "electron-builder": "^24.6.4",
-    "electron-packager": "^17.1.2"
+    "electron-packager": "^17.1.2",
+    "rcedit": "^4.0.1"
   },
   "author": "SVARA Music Player",
   "build": {

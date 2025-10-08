@@ -60,22 +60,15 @@ class YouTubeController:
         
         # Send initial progress
         if self.progress_callback:
-            import asyncio
-            import threading
-            def send_progress():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.progress_callback({
-                        "type": "progress",
-                        "current": 0,
-                        "total": total_songs,
-                        "message": f"Syncing {total_songs} songs..."
-                    }))
-                    loop.close()
-                except Exception as e:
-                    print(f"Progress callback error: {e}")
-            threading.Thread(target=send_progress, daemon=True).start()
+            try:
+                self.progress_callback({
+                    "type": "progress",
+                    "current": 0,
+                    "total": total_songs,
+                    "message": f"Syncing {total_songs} songs..."
+                })
+            except Exception as e:
+                print(f"Progress callback error: {e}")
 
         # Build complete updated song list
         updated_songs = []
@@ -84,23 +77,16 @@ class YouTubeController:
         for i, song in enumerate(songs):
             # Send progress update first
             if self.progress_callback:
-                import asyncio
-                import threading
-                def send_progress():
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(self.progress_callback({
-                            "type": "progress",
-                            "current": i + 1,
-                            "total": total_songs,
-                            "message": f"Syncing {i + 1}/{total_songs} songs",
-                            "song_title": song.get('title', 'Unknown')
-                        }))
-                        loop.close()
-                    except Exception as e:
-                        print(f"Progress callback error: {e}")
-                threading.Thread(target=send_progress, daemon=True).start()
+                try:
+                    self.progress_callback({
+                        "type": "progress",
+                        "current": i + 1,
+                        "total": total_songs,
+                        "message": f"Syncing {i + 1}/{total_songs} songs",
+                        "song_title": song.get('title', 'Unknown')
+                    })
+                except Exception as e:
+                    print(f"Progress callback error: {e}")
             
             if song['id'] in old_ids:
                 # Check if we have cached metadata, otherwise re-fetch
@@ -144,22 +130,15 @@ class YouTubeController:
         
         # Send completion
         if self.progress_callback:
-            import asyncio
-            import threading
-            def send_completion():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.progress_callback({
-                        "type": "complete",
-                        "message": f"Playlist '{playlist_name}' synced successfully!",
-                        "added": len(added_ids),
-                        "removed": len(removed_ids)
-                    }))
-                    loop.close()
-                except Exception as e:
-                    print(f"Progress callback error: {e}")
-            threading.Thread(target=send_completion, daemon=True).start()
+            try:
+                self.progress_callback({
+                    "type": "complete",
+                    "message": f"Playlist '{playlist_name}' synced successfully!",
+                    "added": len(added_ids),
+                    "removed": len(removed_ids)
+                })
+            except Exception as e:
+                print(f"Progress callback error: {e}")
 
         # Update UI
         self._update_ui_after_playlist_sync(playlist_id, playlist_name, added_ids, removed_ids)
@@ -171,43 +150,29 @@ class YouTubeController:
         
         # Send initial progress
         if self.progress_callback:
-            import asyncio
-            import threading
-            def send_progress():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.progress_callback({
-                        "type": "progress",
-                        "current": 0,
-                        "total": total_songs,
-                        "message": f"Processing {total_songs} songs..."
-                    }))
-                    loop.close()
-                except Exception as e:
-                    print(f"Progress callback error: {e}")
-            threading.Thread(target=send_progress, daemon=True).start()
+            try:
+                self.progress_callback({
+                    "type": "progress",
+                    "current": 0,
+                    "total": total_songs,
+                    "message": f"Processing {total_songs} songs..."
+                })
+            except Exception as e:
+                print(f"Progress callback error: {e}")
         
         for i, song in enumerate(songs):
             # Send progress update first
             if self.progress_callback:
-                import asyncio
-                import threading
-                def send_progress():
-                    try:
-                        loop = asyncio.new_event_loop()
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete(self.progress_callback({
-                            "type": "progress",
-                            "current": i + 1,
-                            "total": total_songs,
-                            "message": f"Processing {i + 1}/{total_songs} songs",
-                            "song_title": song.get('title', 'Unknown')
-                        }))
-                        loop.close()
-                    except Exception as e:
-                        print(f"Progress callback error: {e}")
-                threading.Thread(target=send_progress, daemon=True).start()
+                try:
+                    self.progress_callback({
+                        "type": "progress",
+                        "current": i + 1,
+                        "total": total_songs,
+                        "message": f"Processing {i + 1}/{total_songs} songs",
+                        "song_title": song.get('title', 'Unknown')
+                    })
+                except Exception as e:
+                    print(f"Progress callback error: {e}")
             
             # Check cache first
             cached_info = self.yt_streamer._get_cached_metadata(song['id'])
@@ -233,21 +198,14 @@ class YouTubeController:
         
         # Send completion
         if self.progress_callback:
-            import asyncio
-            import threading
-            def send_completion():
-                try:
-                    loop = asyncio.new_event_loop()
-                    asyncio.set_event_loop(loop)
-                    loop.run_until_complete(self.progress_callback({
-                        "type": "complete",
-                        "message": f"Playlist '{playlist_name}' added successfully!",
-                        "playlist_id": playlist_id
-                    }))
-                    loop.close()
-                except Exception as e:
-                    print(f"Progress callback error: {e}")
-            threading.Thread(target=send_completion, daemon=True).start()
+            try:
+                self.progress_callback({
+                    "type": "complete",
+                    "message": f"Playlist '{playlist_name}' added successfully!",
+                    "playlist_id": playlist_id
+                })
+            except Exception as e:
+                print(f"Progress callback error: {e}")
         
         # Update UI
         self.ui.after(0, self.ui.hide_loading)

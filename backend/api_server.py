@@ -193,18 +193,34 @@ async def seek_position(request: SeekRequest):
 @app.post("/api/playlist/add")
 async def add_playlist(request: PlaylistRequest):
     import threading
-    import time
+    import asyncio
     
     # Check if playlist already exists by URL
     existing_playlist_id = logic.playlist_manager.get_playlist_by_url(request.url)
     if existing_playlist_id:
         return {"message": "Playlist already exists", "exists": True}
     
-    # Set progress callback for WebSocket updates
-    logic.youtube_controller.progress_callback = manager.send_progress
+    # Get the current event loop
+    loop = asyncio.get_event_loop()
     
-    # Start the add process
-    logic.add_from_link(request.url)
+    # Sync callback that schedules async send in the main loop
+    def progress_callback(data):
+        asyncio.run_coroutine_threadsafe(manager.send_progress(data), loop)
+    
+    logic.youtube_controller.progress_callback = progress_callback
+    
+    # Start the add process in thread
+    def add_thread():
+        try:
+            logic.add_from_link(request.url)
+        except Exception as e:
+            asyncio.run_coroutine_threadsafe(manager.send_progress({
+                "type": "complete",
+                "message": f"Error: {str(e)}"
+            }), loop)
+    
+    thread = threading.Thread(target=add_thread, daemon=True)
+    thread.start()
     
     return {"message": "Processing started", "exists": False}
 
