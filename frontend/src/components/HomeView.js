@@ -41,6 +41,7 @@ const HomeView = ({ onStatusUpdate, theme, globalLoading, globalLoadingMessage, 
         wsRef.current.connect(
           (progress) => {
             onProgressData(progress);
+            onGlobalLoadingMessage(progress.message || 'Processing...');
           },
           (complete) => {
             onProgressData(null);
@@ -49,6 +50,11 @@ const HomeView = ({ onStatusUpdate, theme, globalLoading, globalLoadingMessage, 
             setMessage(complete.message);
             loadPlaylists();
             wsRef.current.disconnect();
+            setMessage(complete.message || 'Playlist added successfully!');
+            loadPlaylists();
+            if (wsRef.current) {
+              wsRef.current.disconnect();
+            }
           }
         );
         
@@ -59,6 +65,10 @@ const HomeView = ({ onStatusUpdate, theme, globalLoading, globalLoadingMessage, 
           onGlobalLoading(false);
           setIsAdding(false);
           wsRef.current.disconnect();
+          onProgressData(null);
+          if (wsRef.current) {
+            wsRef.current.disconnect();
+          }
         }
         setNewUrl('');
       } else {

@@ -121,7 +121,6 @@ test/
 backend/performance_metrics.log
 backend/simple_log_viewer.py
 backend/view_logs.bat
-backend/vlc_setup.py
 
 # Cache files
 backend/song_url_cache.json
@@ -148,6 +147,6 @@ venv.bak/
 
 
 SVARA-Music-Player/
-
+installer_output
 *.bat
 *.iss

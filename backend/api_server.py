@@ -193,20 +193,47 @@ async def seek_position(request: SeekRequest):
 @app.post("/api/playlist/add")
 async def add_playlist(request: PlaylistRequest):
     import threading
-    import time
+    import asyncio
     
     # Check if playlist already exists by URL
     existing_playlist_id = logic.playlist_manager.get_playlist_by_url(request.url)
     if existing_playlist_id:
         return {"message": "Playlist already exists", "exists": True}
     
-    # Set progress callback for WebSocket updates
-    logic.youtube_controller.progress_callback = manager.send_progress
+    # Create event to wait for completion
+    add_complete = threading.Event()
+    result_data = {"exists": False, "message": "Playlist added successfully"}
     
-    # Start the add process
-    logic.add_from_link(request.url)
+    # Override the update method to capture results
+    original_update_method = logic.youtube_controller._update_existing_playlist
+    original_create_method = logic.youtube_controller._create_new_playlist
     
-    return {"message": "Processing started", "exists": False}
+    def capture_existing_update(playlist_id, playlist_name, songs, thumbnail):
+        result_data["exists"] = True
+        result_data["message"] = "Playlist already exists"
+        add_complete.set()
+        original_update_method(playlist_id, playlist_name, songs, thumbnail)
+    
+    def capture_new_create(playlist_name, songs, source_url, thumbnail):
+        add_complete.set()
+        original_create_method(playlist_name, songs, source_url, thumbnail)
+    
+    logic.youtube_controller._update_existing_playlist = capture_existing_update
+    logic.youtube_controller._create_new_playlist = capture_new_create
+    
+    try:
+        # Start the add process
+        logic.add_from_link(request.url)
+        
+        # Wait for completion (max 15 seconds for faster response)
+        if add_complete.wait(timeout=15):
+            return result_data
+        else:
+            return {"message": "Playlist added successfully", "exists": False}
+    finally:
+        # Restore original methods
+        logic.youtube_controller._update_existing_playlist = original_update_method
+        logic.youtube_controller._create_new_playlist = original_create_method
 
 @app.post("/api/playlist/{playlist_id}/refresh")
 async def refresh_playlist(playlist_id: str):
